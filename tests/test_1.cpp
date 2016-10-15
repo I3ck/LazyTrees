@@ -39,7 +39,7 @@ public:
     {
         if(idx == 0) return x;
         else if(idx == 1) return y;
-        else throw std::out_of_range ("Point can only be accessed with index 0 or 1");
+        else throw std::out_of_range ("Point2D can only be accessed with index 0 or 1");
     }
 };
 
@@ -60,7 +60,8 @@ TEST_CASE("LazyKdTree") {
 
         LazyKdTree<Point2D> tree(std::move(pts));
 
-        auto nearest = tree.nearest(search);
+        auto nearest  = tree.nearest(search);
+        auto nearest3 = tree.k_nearest(search, 3);
 
 
         auto tmp = nearest;

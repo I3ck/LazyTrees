@@ -170,30 +170,30 @@ public:
         evaluate(); ///@todo rename, since this only evaluates if not yet
 
         if(n < 1) return std::vector<P>(); //no real search if n < 1
-        if(is_leaf()) return std::vector<P>{data}; //no further recursion, return current value
+        if(is_leaf()) return std::vector<P>{*(data.get())}; //no further recursion, return current value
 
-        std::vector<P> res();
-        if(res.size() < n || square_dist(search, data) < square_dist(search, res.last()))
-            res.push_back(data); //add current node if there is still room or if it is closer than the currently worst candidate
+        auto res = std::vector<P>();
+        if(res.size() < n || square_dist(search, *(data.get())) < square_dist(search, res.back()))
+            res.push_back(*(data.get())); //add current node if there is still room or if it is closer than the currently worst candidate
 
         //decide which side to check and recurse into it
-        auto comp = dimension_compare(search, data, dim);
+        auto comp = dimension_compare(search, *(data.get()), dim);
 
         if(comp == LEFT)
         {
             if(childNegative)
-                res.push_back(childNegative->k_nearest(search, n)); ///@todo merging of two vectors
+                move_append(childNegative->k_nearest(search, n), res);
         }
         else if(childPositive)
         {
-            res.push_back(childPositive->k_nearest(search, n)); ///@todo merging of two vectors
+            move_append(childPositive->k_nearest(search, n), res);
         }
 
         //only keep the required number of candidates and sort them by distance
         sort_and_limit(res, search, n);
 
         //check whether other side might have candidates aswell
-        double distanceBest = square_dist(search, res.last());
+        double distanceBest = square_dist(search, res.back());
         double borderLeft 	= search[dim] - distanceBest;
         double borderRight 	= search[dim] + distanceBest;
 
@@ -202,12 +202,12 @@ public:
         if(comp == LEFT && childPositive)
         {
             if(res.size() < n || borderRight >= (*data.get())[dim])
-                res.push_back(childPositive->k_nearest(search, n)); ///@todo merging of vectors
+                move_append(childPositive->k_nearest(search, n), res);
         }
         else if (comp == RIGHT && childNegative)
         {
             if(res.size() < n || borderLeft <= (*data.get())[dim])
-                res.push_back(childNegative->k_nearest(search, n)); ///@todo merging of vectors
+                move_append(childNegative->k_nearest(search, n), res);
         }
 
         sort_and_limit(res, search, n);
@@ -348,7 +348,7 @@ private: ///@todo many public/ private switches, cleanup!
                 [&search](P const& a, P const& b) {
                     return square_dist(search, a) < square_dist(search, b);
                 });
-            target.remove_from(maxSize);
+            remove_from(target, maxSize);
         }
     }
 
@@ -364,6 +364,12 @@ private: ///@todo many public/ private switches, cleanup!
         }
     }
 
+    static inline void remove_from(std::vector<P>& x, size_t index)
+    {
+        if (x.size() < index)
+            return;
+        x.erase(x.begin() + index, x.end());
+    }
 };
 
 }
