@@ -33,11 +33,11 @@ private:
     std::unique_ptr<P>
         data;
 
-    const int dim;
+    const size_t dim;
 
 public:
-    LazyKdTree(std::vector<P>&& in, int dimension = 0) :
-        inputData(std::move(in)),
+    LazyKdTree(std::vector<P>&& in, int dimension = 0) : ///@todo maybe should throw if in.size() < 1
+        inputData(new std::vector<P>(std::move(in))),
         childNegative(nullptr),
         childPositive(nullptr),
         data(nullptr),
@@ -104,30 +104,31 @@ private:
 
 //------------------------------------------------------------------------------
 
-    P nearest(P const& search) const ///@todo must evaluate
+public:
+    P nearest(P const& search) const ///@todo must evaluate ///@todo error case when data == nullptr
     {
 
     if(is_leaf())
-        return data; //reached the end, return current value
+        return *data.get(); //reached the end, return current value
 
-    auto comp = dimension_compare(search, data , dim);
+    auto comp = dimension_compare(search, *data.get() , dim);
 
-    P best; //nearest neighbor of search
+    P best; //nearest neighbor of search ///@todo could be reference
 
     if(comp == LEFT && childNegative)
         best = childNegative->nearest(search);
     else if(comp == RIGHT && childPositive)
         best = childPositive->nearest(search);
     else
-        return data;
+        return *data.get();
 
     double sqrDistanceBest = square_dist(search, best);
-    double sqrDistanceThis = square_dist(search, data);
+    double sqrDistanceThis = square_dist(search, *data.get());
 
     if(sqrDistanceThis < sqrDistanceBest)
     {
         sqrDistanceBest = sqrDistanceThis;
-        best = data; //make this value the best if it is closer than the checked side
+        best = *data.get(); //make this value the best if it is closer than the checked side ///@todo best could be a reference type
     }
 
     //check whether other side might have candidates as well
@@ -140,7 +141,7 @@ private:
     //and recurse into the "wrong" direction, to check for possibly additional candidates
     if(comp == LEFT && childPositive)
     {
-        if(borderRight >= data[dim])
+        if(borderRight >= (*data.get())[dim])
         {
             otherBest = childPositive->nearest(search);
             if(square_dist(search, otherBest) < square_dist(search, best))
@@ -149,7 +150,7 @@ private:
     }
     else if (comp == RIGHT && childNegative)
     {
-        if(borderLeft <= data[dim])
+        if(borderLeft <= (*data.get())[dim])
         {
             otherBest = childNegative->nearest(search);
             if(square_dist(search, otherBest) < square_dist(search, best))
@@ -197,12 +198,12 @@ private:
         //and recurse into the "wrong" direction, to check for possibly additional candidates
         if(comp == LEFT && childPositive)
         {
-            if(res.size() < n || borderRight >= data[dim])
+            if(res.size() < n || borderRight >= (*data.get())[dim])
                 res.push_back(childPositive->k_nearest(search, n)); ///@todo merging of vectors
         }
         else if (comp == RIGHT && childNegative)
         {
-            if(res.size() < n || borderLeft <= data[dim])
+            if(res.size() < n || borderLeft <= (*data.get())[dim])
                 res.push_back(childNegative->k_nearest(search, n)); ///@todo merging of vectors
         }
 
@@ -234,11 +235,11 @@ private:
         //check whether distances to other side are smaller than radius
         //and recurse into the "wrong" direction, to check for possibly additional candidates
         if(comp == LEFT && childPositive) {
-            if(borderRight >= data[dim])
+            if(borderRight >= (*data.get())[dim])
                 res.push_back(childPositive->in_circle(search, radius)); ///@todo merging of vectors
         }
         else if (comp == RIGHT && childNegative) {
-            if(borderLeft <= data[dim])
+            if(borderLeft <= (*data.get())[dim])
                 res.push_back(childNegative->in_circle(search, radius)); ///@todo merging of vectors
         }
 
@@ -277,11 +278,11 @@ private:
         //check whether distances to other side are smaller than radius
         //and recurse into the "wrong" direction, to check for possibly additional candidates
         if(comp == LEFT && childPositive) {
-            if(borderRight >= data[dim])
+            if(borderRight >= (*data.get())[dim])
                 res.push_back(childPositive->in_box(search, sizes)); ///@todo merging of vectors
         }
         else if (comp == RIGHT && childNegative) {
-            if(borderLeft <= data[dim])
+            if(borderLeft <= (*data.get())[dim])
                 res.push_back(childNegative->in_box(search, sizes)); ///@todo merging of vectors
         }
 
@@ -293,7 +294,7 @@ private:
 
 
 
-
+private: ///@todo many public/ private switches, cleanup!
 
     inline bool is_leaf() const {
         return !childNegative && !childPositive;
