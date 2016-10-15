@@ -39,7 +39,7 @@ public:
     {
         if(idx == 0) return x;
         else if(idx == 1) return y;
-        else throw std::out_of_range ("Point can only be accessed with index 0 or 1");
+        else throw std::out_of_range ("Point2D can only be accessed with index 0 or 1");
     }
 };
 

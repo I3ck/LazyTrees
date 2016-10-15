@@ -52,7 +52,7 @@ private:
 
     bool is_evaluated() const ///@todo rename to build or similar?
     {
-        return inputData != nullptr;
+        return inputData == nullptr;
     }
 
     void evaluate()
@@ -63,7 +63,7 @@ private:
 
         if(inputData->size() == 1)
         {
-            data = std::unique_ptr<P>(std::move(inputData[0]));
+            data = std::unique_ptr<P>(new P(std::move((*inputData.get())[0])));
             inputData.reset();
         }
 
@@ -80,12 +80,12 @@ private:
             for(size_t i = 0; i < inputData->size(); ++i)
             {
                 if(i < median)
-                    left.push_back(std::move(*inputData.get()[i]));
+                    left.push_back(std::move((*(inputData.get()))[i]));
                 else if(i > median)
-                    right.push_back(std::move(*inputData.get()[i]));
+                    right.push_back(std::move((*(inputData.get()))[i]));
             }
 
-            data = std::unique_ptr<P>(std::move(*inputData.get()[median]));
+            data = std::unique_ptr<P>(new P(std::move((*inputData.get())[median])));
 
             inputData.reset();
 
@@ -105,8 +105,9 @@ private:
 //------------------------------------------------------------------------------
 
 public:
-    P nearest(P const& search) const ///@todo must evaluate ///@todo error case when data == nullptr
+    P nearest(P const& search) ///@todo error case when data == nullptr
     {
+        evaluate(); ///@todo rename, since this only evaluates if not yet
 
     if(is_leaf())
         return *data.get(); //reached the end, return current value
@@ -164,8 +165,10 @@ public:
 
 
 
-    std::vector<P> k_nearest(P const& search, size_t n) const ///@todo must evaluate
+    std::vector<P> k_nearest(P const& search, size_t n)
     {
+        evaluate(); ///@todo rename, since this only evaluates if not yet
+
         if(n < 1) return std::vector<P>(); //no real search if n < 1
         if(is_leaf()) return std::vector<P>{data}; //no further recursion, return current value
 
@@ -211,8 +214,10 @@ public:
         return res;
     }
 
-    std::vector<P> in_circle(P const& search, double radius) const ///@todo rename, todo must evaluate beforehand
+    std::vector<P> in_circle(P const& search, double radius) ///@todo rename
     {
+        evaluate(); ///@todo rename, since this only evaluates if not yet
+
         if(radius <= 0.0) return std::vector<P>(); //no real search if radius <= 0
 
         std::vector<P> res; //all points within the sphere
@@ -246,8 +251,10 @@ public:
         return res;
     }
 
-    std::vector<P> in_box(P const& search, P const& sizes) const ///@todo rename, @todo must evaluate beforehand
+    std::vector<P> in_box(P const& search, P const& sizes) ///@todo rename
     {
+        evaluate(); ///@todo rename, since this only evaluates if not yet
+
         for (size_t i = 0; i < P::dimensions(); ++i)
         {
             if (sizes[i] <= 0.0)
@@ -303,6 +310,8 @@ private: ///@todo many public/ private switches, cleanup!
 
 //------------------------------------------------------------------------------
 
+///@todo many of these can be moved to helper later on
+
     static inline double square_dist(P const& p1, P const& p2)
     {
         double sqrDist = 0;
@@ -321,7 +330,7 @@ private: ///@todo many public/ private switches, cleanup!
 
     static inline void median_dimension_sort(std::vector<P>& pts, size_t dim)
     {
-        std::nth_element(pts->begin(), pts->begin() + pts.size()/2, pts.end(),
+        std::nth_element(pts.begin(), pts.begin() + pts.size()/2, pts.end(),
                          [&pts, dim] (P lhs, P rhs){return lhs[dim] < rhs[dim]; });
     }
 
@@ -343,6 +352,17 @@ private: ///@todo many public/ private switches, cleanup!
         }
     }
 
+
+    static inline void move_append(std::vector<P>&& from, std::vector<P>& to)
+    {
+        if (to.empty())
+            to = std::move(from);
+        else
+        {
+            to.reserve(to.size() + from.size());
+            std::move(std::begin(from), std::end(from), std::back_inserter(to));
+        }
+    }
 
 };
 
