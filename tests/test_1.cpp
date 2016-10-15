@@ -46,7 +46,7 @@ public:
 
 
 TEST_CASE("LazyKdTree") {
-    SECTION("2D") {
+    SECTION("2D") { ///@todo copy tests of lib_2d kdtree
         auto search  = Point2D(13.37, 1337.0);
         auto boxSize = Point2D(30.0, 2.0 * 1334.0);
 
@@ -71,7 +71,7 @@ TEST_CASE("LazyKdTree") {
         auto tmp = nearest;
     }
 
-    SECTION("TIME") { ///@todo move out of test
+    SECTION("TIME") { ///@todo move out of test also write output to a file to later optimize easily
         const size_t nPts = 1000000;
         std::vector<Point2D> pts;
         pts.reserve(nPts);
@@ -103,6 +103,12 @@ TEST_CASE("LazyKdTree") {
         auto tNearest2End = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double, std::milli> tNearest2 = tNearest2End - tNearest2Start;
         std::cout << "Second nearest fetch: " << tNearest2.count() << std::endl;
+
+        auto tEvaluateStart = std::chrono::high_resolution_clock::now();
+        tree.evaluate_recursive();
+        auto tEvaluateEnd = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double, std::milli> tEvaluate = tEvaluateEnd - tEvaluateStart;
+        std::cout << "Fully evaluating: " << tEvaluate.count() << std::endl;
 
     }
 

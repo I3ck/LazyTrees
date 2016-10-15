@@ -16,6 +16,8 @@ namespace lazyTrees {
 ///@todo own project
 ///@todo possibility to transform to a strict tree, to make reading access const
 ///@todo fix intendation etc. (editor hates me)
+///@todo base class which basically is the lazy version but assumes that the tree is already evaluated (everything protected)
+///@todo the lazy version dann then use these implementations calling evaluate beforehand, while the strict one can directly use them and just offer public wrappers
 template<typename P>
 class LazyKdTree
 {
@@ -93,8 +95,8 @@ private:
             if(right.size() > 0) childPositive = std::unique_ptr<LazyKdTree>(new LazyKdTree(std::move(right), dim+1));
         }
     }
-
-    void evaluate_recursive()
+public: ///@todo let evaluate recursive be public?
+    void evaluate_recursive() ///@todo ly
     {
         evaluate();
         if (childNegative) childNegative->evaluate_recursive();
