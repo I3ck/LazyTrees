@@ -265,18 +265,18 @@ public:
 
         bool inBox = true;
         for (size_t i = 0; i < P::dimensions() && inBox; ++i)
-            inBox = dimension_dist(search, data, i) <= 0.5 * sizes[i];
+            inBox = dimension_dist(search, *(data.get()), i) <= 0.5 * sizes[i];
 
-        if (inBox) res.push_back(data);
+        if (inBox) res.push_back(*(data.get()));
 
         if(is_leaf()) return res; //no children, return result
 
         //decide which side to check and recurse into it
-        auto comp = dimension_compare(search, data, dim);
+        auto comp = dimension_compare(search, *(data.get()), dim);
         if(comp == LEFT) {
-            if(childNegative) res.push_back(childNegative->in_box(search, sizes)); ///@todo merging of vectors
+            if(childNegative) move_append(childNegative->in_box(search, sizes), res);
         } else if(childPositive) {
-            res.push_back(childPositive->in_box(search, sizes)); ///@todo merging of vectors
+            move_append(childPositive->in_box(search, sizes), res);
         }
 
         double borderLeft 	= search[dim] - 0.5 * sizes[dim];
@@ -286,11 +286,11 @@ public:
         //and recurse into the "wrong" direction, to check for possibly additional candidates
         if(comp == LEFT && childPositive) {
             if(borderRight >= (*data.get())[dim])
-                res.push_back(childPositive->in_box(search, sizes)); ///@todo merging of vectors
+                move_append(childPositive->in_box(search, sizes), res);
         }
         else if (comp == RIGHT && childNegative) {
             if(borderLeft <= (*data.get())[dim])
-                res.push_back(childNegative->in_box(search, sizes)); ///@todo merging of vectors
+                move_append(childNegative->in_box(search, sizes), res);
         }
 
         return res;

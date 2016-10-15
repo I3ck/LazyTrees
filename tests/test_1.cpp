@@ -46,7 +46,8 @@ public:
 
 TEST_CASE("LazyKdTree") {
     SECTION("2D") {
-        auto search = Point2D(13.37, 1337.0);
+        auto search  = Point2D(13.37, 1337.0);
+        auto boxSize = Point2D(30.0, 2.0 * 1334.0);
 
         auto pts = std::vector<Point2D>{
            Point2D(0.0, 1.0),
@@ -62,6 +63,7 @@ TEST_CASE("LazyKdTree") {
 
         auto nearest  = tree.nearest(search);
         auto nearest3 = tree.k_nearest(search, 3);
+        auto inBox	  = tree.in_box(search, boxSize);
 
 
         auto tmp = nearest;
