@@ -221,17 +221,17 @@ public:
         if(radius <= 0.0) return std::vector<P>(); //no real search if radius <= 0
 
         std::vector<P> res; //all points within the sphere
-        if(sqrt(square_dist(search, data)) <= radius)
-            res.push_back(data); //add current node if it is within the search radius
+        if(sqrt(square_dist(search, *(data.get()))) <= radius)
+            res.push_back(*(data.get())); //add current node if it is within the search radius
 
         if(is_leaf()) return res; //no children, return result
 
         //decide which side to check and recurse into it
-        auto comp = dimension_compare(search, data, dim);
+        auto comp = dimension_compare(search, *(data.get()), dim);
         if(comp == LEFT) {
-            if(childNegative) res.push_back(childNegative->in_circle(search, radius)); ///@todo merging of vectors
+            if(childNegative) move_append(childNegative->in_circle(search, radius), res);
         } else if(childPositive) {
-            res.push_back(childPositive->in_circle(search, radius)); ///@todo merging of vectors
+            move_append(childPositive->in_circle(search, radius), res);
         }
 
         double borderLeft  = search[dim] - radius;
@@ -241,11 +241,11 @@ public:
         //and recurse into the "wrong" direction, to check for possibly additional candidates
         if(comp == LEFT && childPositive) {
             if(borderRight >= (*data.get())[dim])
-                res.push_back(childPositive->in_circle(search, radius)); ///@todo merging of vectors
+            move_append(childPositive->in_circle(search, radius), res);
         }
         else if (comp == RIGHT && childNegative) {
             if(borderLeft <= (*data.get())[dim])
-                res.push_back(childNegative->in_circle(search, radius)); ///@todo merging of vectors
+                move_append(childNegative->in_circle(search, radius), res);
         }
 
         return res;

@@ -64,6 +64,7 @@ TEST_CASE("LazyKdTree") {
         auto nearest  = tree.nearest(search);
         auto nearest3 = tree.k_nearest(search, 3);
         auto inBox	  = tree.in_box(search, boxSize);
+        auto inCircle = tree.in_circle(search, 1334.0);
 
 
         auto tmp = nearest;
