@@ -71,7 +71,7 @@ TEST_CASE("LazyKdTree") {
         auto tmp = nearest;
     }
 
-    SECTION("Performance LazyKdTree") { ///@todo move out of test
+    SECTION("Performance LazyKdTree") { ///@todo move out of test ///@todo also test in circle and k nearest
         const size_t nPts = 1000000;
         std::vector<Point2D> pts;
         pts.reserve(nPts);
@@ -80,34 +80,47 @@ TEST_CASE("LazyKdTree") {
         for (auto i = 0; i < nPts; ++i)
             pts.push_back(Point2D(0.5 * i, 2.0 * i));
         std::chrono::duration<double, std::milli> tVec = std::chrono::high_resolution_clock::now() - tVecStart;
-        std::cout << "Creation Vec: " << tVec.count() << std::endl;
 
 
         auto tTreeStart = std::chrono::high_resolution_clock::now();
         LazyKdTree<Point2D> tree(std::move(pts));
         std::chrono::duration<double, std::milli> tTree = std::chrono::high_resolution_clock::now() - tTreeStart;
-        std::cout << "Creation Tree: " << tTree.count() << std::endl;
 
 
         auto tNearest1Start = std::chrono::high_resolution_clock::now();
         auto nearest1 = tree.nearest(Point2D(250000, 1000000));
         std::chrono::duration<double, std::milli> tNearest1 = std::chrono::high_resolution_clock::now() - tNearest1Start;
-        std::cout << "First nearest fetch: " << tNearest1.count() << std::endl;
 
 
         auto tNearest2Start = std::chrono::high_resolution_clock::now();
         auto nearest2 = tree.nearest(Point2D(250000, 1000000));
         std::chrono::duration<double, std::milli> tNearest2 = std::chrono::high_resolution_clock::now() - tNearest2Start;
-        std::cout << "Second nearest fetch: " << tNearest2.count() << std::endl;
 
         auto tEvaluateStart = std::chrono::high_resolution_clock::now();
         tree.evaluate_recursive();
         std::chrono::duration<double, std::milli> tEvaluate = std::chrono::high_resolution_clock::now() - tEvaluateStart;
-        std::cout << "Fully evaluating: " << tEvaluate.count() << std::endl;
+
+
+
+
+        std::ifstream fileExistTest("timeLog.txt");
+        auto fileExists = (bool)fileExistTest;
+        fileExistTest.close();
 
         std::ofstream outfile;
-
         outfile.open("timeLog.txt", std::ios_base::app);
+
+        if (!fileExists)
+        {
+            outfile
+                << "VERSION;"
+                << "vec creation;"
+                << "tree creation;"
+                << "first nearest;"
+                << "second nearest;"
+                << "full evaluation;"
+                << std::endl;
+        }
         outfile
             << __DATE__
             << " -- "
