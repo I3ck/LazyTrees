@@ -71,7 +71,7 @@ TEST_CASE("LazyKdTree") {
         auto tmp = nearest;
     }
 
-    SECTION("TIME") { ///@todo move out of test also write output to a file to later optimize easily
+    SECTION("Performance LazyKdTree") { ///@todo move out of test
         const size_t nPts = 1000000;
         std::vector<Point2D> pts;
         pts.reserve(nPts);
@@ -79,37 +79,50 @@ TEST_CASE("LazyKdTree") {
         auto tVecStart = std::chrono::high_resolution_clock::now();
         for (auto i = 0; i < nPts; ++i)
             pts.push_back(Point2D(0.5 * i, 2.0 * i));
-        auto tVecEnd = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double, std::milli> tVec = tVecEnd - tVecStart;
+        std::chrono::duration<double, std::milli> tVec = std::chrono::high_resolution_clock::now() - tVecStart;
         std::cout << "Creation Vec: " << tVec.count() << std::endl;
 
 
         auto tTreeStart = std::chrono::high_resolution_clock::now();
         LazyKdTree<Point2D> tree(std::move(pts));
-        auto tTreeEnd = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double, std::milli> tTree = tTreeEnd - tTreeStart;
+        std::chrono::duration<double, std::milli> tTree = std::chrono::high_resolution_clock::now() - tTreeStart;
         std::cout << "Creation Tree: " << tTree.count() << std::endl;
 
 
         auto tNearest1Start = std::chrono::high_resolution_clock::now();
         auto nearest1 = tree.nearest(Point2D(250000, 1000000));
-        auto tNearest1End = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double, std::milli> tNearest1 = tNearest1End - tNearest1Start;
+        std::chrono::duration<double, std::milli> tNearest1 = std::chrono::high_resolution_clock::now() - tNearest1Start;
         std::cout << "First nearest fetch: " << tNearest1.count() << std::endl;
 
 
         auto tNearest2Start = std::chrono::high_resolution_clock::now();
         auto nearest2 = tree.nearest(Point2D(250000, 1000000));
-        auto tNearest2End = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double, std::milli> tNearest2 = tNearest2End - tNearest2Start;
+        std::chrono::duration<double, std::milli> tNearest2 = std::chrono::high_resolution_clock::now() - tNearest2Start;
         std::cout << "Second nearest fetch: " << tNearest2.count() << std::endl;
 
         auto tEvaluateStart = std::chrono::high_resolution_clock::now();
         tree.evaluate_recursive();
-        auto tEvaluateEnd = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double, std::milli> tEvaluate = tEvaluateEnd - tEvaluateStart;
+        std::chrono::duration<double, std::milli> tEvaluate = std::chrono::high_resolution_clock::now() - tEvaluateStart;
         std::cout << "Fully evaluating: " << tEvaluate.count() << std::endl;
 
+        std::ofstream outfile;
+
+        outfile.open("timeLog.txt", std::ios_base::app);
+        outfile
+            << __DATE__
+            << " -- "
+            << __TIME__
+            << ";"
+            << tVec.count()
+            << ";"
+            << tTree.count()
+            << ";"
+            << tNearest1.count()
+            << ";"
+            << tNearest2.count()
+            << ";"
+            << tEvaluate.count()
+            << std::endl;
     }
 
 }
