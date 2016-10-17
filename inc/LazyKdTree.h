@@ -298,6 +298,17 @@ public:
         return res;
     }
 
+    size_t size() const
+    {
+        if (!is_evaluated())
+            return inputData->size();
+
+        size_t result = 1;
+        if (childNegative) result += childNegative->size();
+        if (childPositive) result += childPositive->size();
+        return result;
+    }
+
 
 
 

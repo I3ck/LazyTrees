@@ -27,7 +27,10 @@ public:
         y(y)
     {}
 
-
+    bool operator ==(const Point2D &b) const
+    {
+        return x == b.x && y == b.y;
+    }
 
 
 
@@ -45,11 +48,8 @@ public:
 };
 
 
-TEST_CASE("LazyKdTree") {
-    SECTION("2D") { ///@todo copy tests of lib_2d kdtree
-        auto search  = Point2D(13.37, 1337.0);
-        auto boxSize = Point2D(30.0, 2.0 * 1334.0);
-
+TEST_CASE("LazyKdTree - Point2D") {
+    SECTION("Creation and size") {
         auto pts = std::vector<Point2D>{
            Point2D(0.0, 1.0),
            Point2D(0.0, 2.0),
@@ -59,17 +59,35 @@ TEST_CASE("LazyKdTree") {
            Point2D(0.0, 6.0),
            Point2D(0.0, 7.0),
         };
+        auto inputSize = pts.size();
 
         LazyKdTree<Point2D> tree(std::move(pts));
 
-        auto nearest  = tree.nearest(search);
-        auto nearest3 = tree.k_nearest(search, 3);
-        auto inBox	  = tree.in_box(search, boxSize);
-        auto inCircle = tree.in_circle(search, 1334.0);
-
-
-        auto tmp = nearest;
+        REQUIRE(tree.size() == inputSize);
+        tree.evaluate_recursive();
+        REQUIRE(tree.size() == inputSize);
     }
+
+    SECTION("Nearest") {
+        auto pts = std::vector<Point2D>{
+           Point2D(0.0, 1.0),
+           Point2D(0.0, 2.0),
+           Point2D(0.0, 3.0),
+           Point2D(0.0, 4.0),
+           Point2D(0.0, 5.0),
+           Point2D(15.0, 6.0),
+           Point2D(0.0, 7.0),
+        };
+        LazyKdTree<Point2D> tree(std::move(pts));
+
+        REQUIRE(tree.nearest(Point2D(0.3, 0.7)) 		== Point2D(0.0, 1.0));
+        REQUIRE(tree.nearest(Point2D(-100.0, -100.0)) 	== Point2D(0.0, 1.0));
+        REQUIRE(tree.nearest(Point2D(0.5, 2.1)) 		== Point2D(0.0, 2.0));
+        REQUIRE(tree.nearest(Point2D(14.0, 7.0)) 		== Point2D(15.0, 6.0));
+        REQUIRE(tree.nearest(Point2D(0.0, 300.0)) 		== Point2D(0.0, 7.0));
+    }
+
+    ///@todo knearest, box, circle
 
     SECTION("Performance LazyKdTree") { ///@todo move out of test ///@todo also test in circle and k nearest
         const size_t nPts = 1000000;
