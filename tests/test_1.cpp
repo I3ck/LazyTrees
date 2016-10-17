@@ -87,9 +87,59 @@ TEST_CASE("LazyKdTree - Point2D") {
         REQUIRE(tree.nearest(Point2D(0.0, 300.0)) 		== Point2D(0.0, 7.0));
     }
 
-    ///@todo knearest, box, circle
+    SECTION("k_nearest") {
+        auto pts = std::vector<Point2D>{
+           Point2D(0.0, 1.0),
+           Point2D(0.0, 2.0),
+           Point2D(0.0, 3.0),
+           Point2D(0.0, 4.0),
+           Point2D(0.0, 5.0),
+           Point2D(15.0, 6.0),
+           Point2D(0.0, 7.0),
+        };
+        LazyKdTree<Point2D> tree(std::move(pts));
 
-    SECTION("Performance LazyKdTree") { ///@todo move out of test ///@todo also test in circle and k nearest
+        auto result = tree.k_nearest(Point2D(0.0, 0.0), 3);
+
+        REQUIRE(result.size() == 3);
+        REQUIRE(result[0] == Point2D(0.0, 1.0));
+        REQUIRE(result[1] == Point2D(0.0, 2.0));
+        REQUIRE(result[2] == Point2D(0.0, 3.0));
+    }
+
+    SECTION("in_box") {
+        auto pts = std::vector<Point2D>{
+           Point2D(0.0, 1.0),
+           Point2D(0.0, 2.0),
+           Point2D(0.0, 3.0),
+           Point2D(0.0, 4.0),
+           Point2D(0.0, 5.0),
+           Point2D(15.0, 6.0),
+           Point2D(0.0, 7.0),
+        };
+        LazyKdTree<Point2D> tree(std::move(pts));
+
+        auto result = tree.in_box(Point2D(0.0, 2.0), Point2D(2.1, 2.1));
+        REQUIRE(result.size() == 3);
+    }
+
+    SECTION("in_circle") {
+        auto pts = std::vector<Point2D>{
+           Point2D(0.0, 1.0),
+           Point2D(0.0, 2.0),
+           Point2D(0.0, 3.0),
+           Point2D(0.0, 4.0),
+           Point2D(0.0, 5.0),
+           Point2D(15.0, 6.0),
+           Point2D(0.0, 7.0),
+        };
+        LazyKdTree<Point2D> tree(std::move(pts));
+
+        auto result = tree.in_circle(Point2D(0.0, 2.0), 1.1);
+        REQUIRE(result.size() == 3);
+    }
+
+    SECTION("Performance LazyKdTree") { ///@todo move out of test
         const size_t nPts = 1000000;
         std::vector<Point2D> pts;
         pts.reserve(nPts);
