@@ -14,14 +14,7 @@ namespace lazyTrees {
 // P also must be const random-accessable for up to [dimensions() - 1] returning
 // the X / Y / Z / ... coordinate of the point
 
-///@todo own project
 ///@todo possibility to transform to a strict tree, to make reading access const
-///@todo fix intendation etc. (editor hates me)
-///@todo base class which basically is the lazy version but assumes that the
-/// tree is already evaluated (everything protected)
-///@todo the lazy version can then use these implementations calling evaluate
-/// beforehand, while the strict one can directly use them and just offer public
-/// wrappers
 template <typename P>
 class LazyKdTree {
 private:
