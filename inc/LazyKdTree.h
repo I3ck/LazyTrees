@@ -218,7 +218,7 @@ public:
         return res;
     }
 
-    std::vector<P> in_circle(P const& search, double radius) ///@todo rename
+    std::vector<P> in_hypersphere(P const& search, double radius)
     {
         evaluate(); ///@todo rename, since this only evaluates if not yet
 
@@ -233,9 +233,9 @@ public:
         //decide which side to check and recurse into it
         auto comp = dimension_compare(search, *(data.get()), dim);
         if(comp == NEGATIVE) {
-            if(childNegative) move_append(childNegative->in_circle(search, radius), res);
+            if(childNegative) move_append(childNegative->in_hypersphere(search, radius), res);
         } else if(childPositive) {
-            move_append(childPositive->in_circle(search, radius), res);
+            move_append(childPositive->in_hypersphere(search, radius), res);
         }
 
         double borderNegative  	= search[dim] - radius;
@@ -245,17 +245,17 @@ public:
         //and recurse into the "wrong" direction, to check for possibly additional candidates
         if(comp == NEGATIVE && childPositive) {
             if(borderPositive >= (*data.get())[dim])
-            move_append(childPositive->in_circle(search, radius), res);
+            move_append(childPositive->in_hypersphere(search, radius), res);
         }
         else if (comp == POSITIVE && childNegative) {
             if(borderNegative <= (*data.get())[dim])
-                move_append(childNegative->in_circle(search, radius), res);
+                move_append(childNegative->in_hypersphere(search, radius), res);
         }
 
         return res;
     }
 
-    std::vector<P> in_box(P const& search, P const& sizes) ///@todo rename
+    std::vector<P> in_box(P const& search, P const& sizes)
     {
         evaluate(); ///@todo rename, since this only evaluates if not yet
 

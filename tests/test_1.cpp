@@ -135,7 +135,7 @@ TEST_CASE("LazyKdTree - Point2D") {
         };
         LazyKdTree<Point2D> tree(std::move(pts));
 
-        auto result = tree.in_circle(Point2D(0.0, 2.0), 1.1);
+        auto result = tree.in_hypersphere(Point2D(0.0, 2.0), 1.1);
         REQUIRE(result.size() == 3);
     }
 
