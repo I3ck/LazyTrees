@@ -17,13 +17,13 @@ namespace lazyTrees {
 ///@todo possibility to transform to a strict tree, to make reading access const
 ///@todo fix intendation etc. (editor hates me)
 ///@todo base class which basically is the lazy version but assumes that the tree is already evaluated (everything protected)
-///@todo the lazy version dann then use these implementations calling evaluate beforehand, while the strict one can directly use them and just offer public wrappers
+///@todo the lazy version can then use these implementations calling evaluate beforehand, while the strict one can directly use them and just offer public wrappers
 template<typename P>
 class LazyKdTree
 {
 private:
 
-    enum Compare {LEFT, RIGHT}; ///@todo positive negative (remove all left/right code)
+    enum Compare {NEGATIVE, POSITIVE};
 
     std::unique_ptr<std::vector<P>>
         inputData;
@@ -72,27 +72,27 @@ private:
         else if(inputData->size() > 1)
         {
             size_t median = inputData->size() / 2;
-            std::vector<P> left, right; ///@todo rename
+            std::vector<P> inputNegative, inputPositive;
 
-            left.reserve(median - 1);
-            right.reserve(median - 1);
+            inputNegative.reserve(median - 1);
+            inputPositive.reserve(median - 1);
 
             median_dimension_sort(*inputData.get(), dim);
 
             for(size_t i = 0; i < inputData->size(); ++i)
             {
                 if(i < median)
-                    left.push_back(std::move((*(inputData.get()))[i]));
+                    inputNegative.push_back(std::move((*(inputData.get()))[i]));
                 else if(i > median)
-                    right.push_back(std::move((*(inputData.get()))[i]));
+                    inputPositive.push_back(std::move((*(inputData.get()))[i]));
             }
 
             data = std::unique_ptr<P>(new P(std::move((*inputData.get())[median])));
 
             inputData.reset();
 
-            if(left.size() > 0)  childNegative = std::unique_ptr<LazyKdTree>(new LazyKdTree(std::move(left),  dim+1));
-            if(right.size() > 0) childPositive = std::unique_ptr<LazyKdTree>(new LazyKdTree(std::move(right), dim+1));
+            if(inputNegative.size() > 0)  childNegative = std::unique_ptr<LazyKdTree>(new LazyKdTree(std::move(inputNegative),  dim+1));
+            if(inputPositive.size() > 0) childPositive = std::unique_ptr<LazyKdTree>(new LazyKdTree(std::move(inputPositive), dim+1));
         }
     }
 public: ///@todo let evaluate recursive be public?
@@ -118,9 +118,9 @@ public:
 
     P best; //nearest neighbor of search ///@todo could be reference
 
-    if(comp == LEFT && childNegative)
+    if(comp == NEGATIVE && childNegative)
         best = childNegative->nearest(search);
-    else if(comp == RIGHT && childPositive)
+    else if(comp == POSITIVE && childPositive)
         best = childPositive->nearest(search);
     else
         return *data.get();
@@ -135,25 +135,24 @@ public:
     }
 
     //check whether other side might have candidates as well
-    ///@todo can stay squared?
-    double borderLeft 	= search[dim] - sqrt(sqrDistanceBest);
-    double borderRight 	= search[dim] + sqrt(sqrDistanceBest);
+    double borderNegative 	= search[dim] - sqrt(sqrDistanceBest);
+    double borderPositive 	= search[dim] + sqrt(sqrDistanceBest);
     P otherBest;
 
     //check whether distances to other side are smaller than currently best
     //and recurse into the "wrong" direction, to check for possibly additional candidates
-    if(comp == LEFT && childPositive)
+    if(comp == NEGATIVE && childPositive)
     {
-        if(borderRight >= (*data.get())[dim])
+        if(borderPositive >= (*data.get())[dim])
         {
             otherBest = childPositive->nearest(search);
             if(square_dist(search, otherBest) < square_dist(search, best))
                 best = otherBest;
         }
     }
-    else if (comp == RIGHT && childNegative)
+    else if (comp == POSITIVE && childNegative)
     {
-        if(borderLeft <= (*data.get())[dim])
+        if(borderNegative <= (*data.get())[dim])
         {
             otherBest = childNegative->nearest(search);
             if(square_dist(search, otherBest) < square_dist(search, best))
@@ -181,7 +180,7 @@ public:
         //decide which side to check and recurse into it
         auto comp = dimension_compare(search, *(data.get()), dim);
 
-        if(comp == LEFT)
+        if(comp == NEGATIVE)
         {
             if(childNegative)
                 move_append(childNegative->k_nearest(search, n), res);
@@ -195,20 +194,20 @@ public:
         sort_and_limit(res, search, n);
 
         //check whether other side might have candidates aswell
-        double distanceBest = square_dist(search, res.back());
-        double borderLeft 	= search[dim] - distanceBest;
-        double borderRight 	= search[dim] + distanceBest;
+        double distanceBest 	= square_dist(search, res.back());
+        double borderNegative 	= search[dim] - distanceBest;
+        double borderPositive 	= search[dim] + distanceBest;
 
         //check whether distances to other side are smaller than currently worst candidate
         //and recurse into the "wrong" direction, to check for possibly additional candidates
-        if(comp == LEFT && childPositive)
+        if(comp == NEGATIVE && childPositive)
         {
-            if(res.size() < n || borderRight >= (*data.get())[dim])
+            if(res.size() < n || borderPositive >= (*data.get())[dim])
                 move_append(childPositive->k_nearest(search, n), res);
         }
-        else if (comp == RIGHT && childNegative)
+        else if (comp == POSITIVE && childNegative)
         {
-            if(res.size() < n || borderLeft <= (*data.get())[dim])
+            if(res.size() < n || borderNegative <= (*data.get())[dim])
                 move_append(childNegative->k_nearest(search, n), res);
         }
 
@@ -230,23 +229,23 @@ public:
 
         //decide which side to check and recurse into it
         auto comp = dimension_compare(search, *(data.get()), dim);
-        if(comp == LEFT) {
+        if(comp == NEGATIVE) {
             if(childNegative) move_append(childNegative->in_circle(search, radius), res);
         } else if(childPositive) {
             move_append(childPositive->in_circle(search, radius), res);
         }
 
-        double borderLeft  = search[dim] - radius;
-        double borderRight = search[dim] + radius;
+        double borderNegative  	= search[dim] - radius;
+        double borderPositive 	= search[dim] + radius;
 
         //check whether distances to other side are smaller than radius
         //and recurse into the "wrong" direction, to check for possibly additional candidates
-        if(comp == LEFT && childPositive) {
-            if(borderRight >= (*data.get())[dim])
+        if(comp == NEGATIVE && childPositive) {
+            if(borderPositive >= (*data.get())[dim])
             move_append(childPositive->in_circle(search, radius), res);
         }
-        else if (comp == RIGHT && childNegative) {
-            if(borderLeft <= (*data.get())[dim])
+        else if (comp == POSITIVE && childNegative) {
+            if(borderNegative <= (*data.get())[dim])
                 move_append(childNegative->in_circle(search, radius), res);
         }
 
@@ -275,23 +274,23 @@ public:
 
         //decide which side to check and recurse into it
         auto comp = dimension_compare(search, *(data.get()), dim);
-        if(comp == LEFT) {
+        if(comp == NEGATIVE) {
             if(childNegative) move_append(childNegative->in_box(search, sizes), res);
         } else if(childPositive) {
             move_append(childPositive->in_box(search, sizes), res);
         }
 
-        double borderLeft 	= search[dim] - 0.5 * sizes[dim];
-        double borderRight 	= search[dim] + 0.5 * sizes[dim];
+        double borderNegative 	= search[dim] - 0.5 * sizes[dim];
+        double borderPositive 	= search[dim] + 0.5 * sizes[dim];
 
         //check whether distances to other side are smaller than radius
         //and recurse into the "wrong" direction, to check for possibly additional candidates
-        if(comp == LEFT && childPositive) {
-            if(borderRight >= (*data.get())[dim])
+        if(comp == NEGATIVE && childPositive) {
+            if(borderPositive >= (*data.get())[dim])
                 move_append(childPositive->in_box(search, sizes), res);
         }
-        else if (comp == RIGHT && childNegative) {
-            if(borderLeft <= (*data.get())[dim])
+        else if (comp == POSITIVE && childNegative) {
+            if(borderNegative <= (*data.get())[dim])
                 move_append(childNegative->in_box(search, sizes), res);
         }
 
@@ -349,8 +348,8 @@ private: ///@todo many public/ private switches, cleanup!
 
     static inline Compare dimension_compare(P const& lhs, P const& rhs, size_t dim)
     {
-        if(lhs[dim] <= rhs[dim]) return LEFT;
-        else return RIGHT;
+        if(lhs[dim] <= rhs[dim]) return NEGATIVE;
+        else return POSITIVE;
     }
 
     static inline void sort_and_limit(std::vector<P> &target,P const& search, size_t maxSize)
