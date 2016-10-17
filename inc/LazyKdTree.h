@@ -38,13 +38,16 @@ private:
     const size_t dim;
 
 public:
-    LazyKdTree(std::vector<P>&& in, int dimension = 0) : ///@todo maybe should throw if in.size() < 1
+    LazyKdTree(std::vector<P>&& in, int dimension = 0) :
         inputData(new std::vector<P>(std::move(in))),
         childNegative(nullptr),
         childPositive(nullptr),
         data(nullptr),
         dim(dimension % P::dimensions())
-    {}
+    {
+        if (inputData->size() == 0)
+            throw std::logic_error("LazyKdTree can't be constructed from empty inputs");
+    }
 
     ///@todo enable some of these depending on what's required
     LazyKdTree(LazyKdTree const&) = delete;
@@ -107,7 +110,7 @@ public: ///@todo let evaluate recursive be public?
 //------------------------------------------------------------------------------
 
 public:
-    P nearest(P const& search) ///@todo error case when data == nullptr
+    P nearest(P const& search)
     {
         evaluate(); ///@todo rename, since this only evaluates if not yet
 
