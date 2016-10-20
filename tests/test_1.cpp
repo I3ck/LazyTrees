@@ -189,19 +189,48 @@ TEST_CASE("KdTree - Point2D") {
         auto nearest2 = tree.nearest(Point2D(250000, 1000000));
         std::chrono::duration<double, std::milli> tNearest2 = std::chrono::high_resolution_clock::now() - tNearest2Start;
 
+        auto tKNearestStart = std::chrono::high_resolution_clock::now();
+        auto knearest = tree.k_nearest(Point2D(110000, 500000), 1000);
+        std::chrono::duration<double, std::milli> tKNearest = std::chrono::high_resolution_clock::now() - tKNearestStart;
+
+        auto tKNearest2Start = std::chrono::high_resolution_clock::now();
+        auto knearest2 = tree.k_nearest(Point2D(110000, 500000), 1000);
+        std::chrono::duration<double, std::milli> tKNearest2 = std::chrono::high_resolution_clock::now() - tKNearest2Start;
+
+        auto tSphereStart = std::chrono::high_resolution_clock::now();
+        auto sphere = tree.in_hypersphere(Point2D(20000, 100000), 10000);
+        std::chrono::duration<double, std::milli> tSphere = std::chrono::high_resolution_clock::now() - tSphereStart;
+
+        auto tSphere2Start = std::chrono::high_resolution_clock::now();
+        auto sphere2 = tree.in_hypersphere(Point2D(20000, 100000), 10000);
+        std::chrono::duration<double, std::milli> tSphere2 = std::chrono::high_resolution_clock::now() - tSphere2Start;
+
+        auto tBoxStart = std::chrono::high_resolution_clock::now();
+        auto box = tree.in_box(Point2D(400000, 400000), Point2D(10000, 10000));
+        std::chrono::duration<double, std::milli> tBox = std::chrono::high_resolution_clock::now() - tBoxStart;
+
+        auto tBox2Start = std::chrono::high_resolution_clock::now();
+        auto box2 = tree.in_box(Point2D(400000, 400000), Point2D(10000, 10000));
+        std::chrono::duration<double, std::milli> tBox2 = std::chrono::high_resolution_clock::now() - tBox2Start;
+
+
         auto tEvaluateStart = std::chrono::high_resolution_clock::now();
         tree.ensure_evaluated_fully();
         std::chrono::duration<double, std::milli> tEvaluate = std::chrono::high_resolution_clock::now() - tEvaluateStart;
 
+        auto tEvaluate2Start = std::chrono::high_resolution_clock::now();
+        tree.ensure_evaluated_fully();
+        std::chrono::duration<double, std::milli> tEvaluate2 = std::chrono::high_resolution_clock::now() - tEvaluate2Start;
 
 
 
-        std::ifstream fileExistTest("timeLog.txt");
+        const std::string logFile("perfLog.csv");
+        std::ifstream fileExistTest(logFile);
         auto fileExists = (bool)fileExistTest;
         fileExistTest.close();
 
         std::ofstream outfile;
-        outfile.open("timeLog.txt", std::ios_base::app);
+        outfile.open(logFile, std::ios_base::app);
 
         if (!fileExists)
         {
@@ -209,25 +238,32 @@ TEST_CASE("KdTree - Point2D") {
                 << "VERSION;"
                 << "vec creation;"
                 << "tree creation;"
-                << "first nearest;"
-                << "second nearest;"
+                << "nearest;"
+                << "nearest2;"
+                << "knearest;"
+                << "knearest2;"
+                << "sphere;"
+                << "sphere2;"
+                << "box;"
+                << "box2;"
                 << "full evaluation;"
+                << "full evaluation2;"
                 << std::endl;
         }
         outfile
-            << __DATE__
-            << " -- "
-            << __TIME__
-            << ";"
-            << tVec.count()
-            << ";"
-            << tTree.count()
-            << ";"
-            << tNearest1.count()
-            << ";"
-            << tNearest2.count()
-            << ";"
-            << tEvaluate.count()
+            << __DATE__ << " -- " << __TIME__ << ";"
+            << tVec.count() << ";"
+            << tTree.count() << ";"
+            << tNearest1.count() << ";"
+            << tNearest2.count() << ";"
+            << tKNearest.count() << ";"
+            << tKNearest2.count() << ";"
+            << tSphere.count() << ";"
+            << tSphere2.count() << ";"
+            << tBox.count() << ";"
+            << tBox2.count() << ";"
+            << tEvaluate.count() << ";"
+            << tEvaluate2.count()
             << std::endl;
     }
 

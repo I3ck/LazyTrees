@@ -142,7 +142,7 @@ public:
 
         auto comp = dimension_compare(search, *data.get(), dim);
 
-        P best; // nearest neighbor of search ///@todo could be reference
+        P best; // nearest neighbor of search
 
         if (comp == NEGATIVE && childNegative)
             best = childNegative->nearest(search);
@@ -157,7 +157,7 @@ public:
         if (sqrDistanceThis < sqrDistanceBest) {
             sqrDistanceBest = sqrDistanceThis;
             best = *data.get(); // make this value the best if it is closer than the
-            // checked side ///@todo best could be a reference
+            // checked side
             // type
         }
 
