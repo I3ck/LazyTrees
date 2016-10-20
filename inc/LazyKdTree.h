@@ -10,6 +10,7 @@ namespace lazyTrees {
 
 //------------------------------------------------------------------------------
 
+
 // P must implement static size_t dimensions() returning number of dimensions
 // P also must be const random-accessable for up to [dimensions() - 1] returning
 // the X / Y / Z / ... coordinate of the point
@@ -380,6 +381,51 @@ private: ///@todo many public/ private switches, cleanup!
         x.erase(x.begin() + index, x.end());
     }
 };
+
+template <typename P>
+class StrictKdTree {
+private:
+    mutable LazyKdTree<P> lkd;
+
+public:
+    StrictKdTree(std::vector<P>&& in)
+        : lkd(std::move(in), 0)
+    {
+        lkd.evaluate_recursive();
+    }
+
+    StrictKdTree(LazyKdTree<P>&& in)
+        : lkd(std::move(in))
+    {
+        lkd.evaluate_recursive();
+    }
+
+    P nearest(P const& search) const
+    {
+        return lkd.nearest(search);
+    }
+
+    std::vector<P> k_nearest(P const& search, size_t n) const
+    {
+        return lkd.k_nearest(search, n);
+    }
+
+    std::vector<P> in_hypersphere(P const& search, double radius) const
+    {
+        return lkd.in_hypersphere(search, radius);
+    }
+
+    std::vector<P> in_box(P const& search, P const& sizes) const
+    {
+        return lkd.in_box(search, sizes);
+    }
+
+    size_t size() const
+    {
+        return lkd.size();
+    }
+};
+
 }
 
 #endif // LAZYKDTREE_H
