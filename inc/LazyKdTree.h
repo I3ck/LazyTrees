@@ -192,33 +192,28 @@ public:
     {
         ensure_evaluated();
 
-        if (n < 1)
-            return std::vector<P>(); // no real search if n < 1
-        if (is_leaf())
-            return std::vector<P>{ *(
-                data.get()) }; // no further recursion, return current value
+        if (n < 1)     return std::vector<P>(); // no real search if n < 1
+        if (is_leaf()) return std::vector<P>{ *(data.get()) }; // no further recursion, return current value
 
         auto res = std::vector<P>();
-        if (res.size() < n || square_dist(search, *(data.get())) < square_dist(search, res.back()))
-            res.push_back(*(data.get())); // add current node if there is still room
-        // or if it is closer than the currently
-        // worst candidate
 
         // decide which side to check and recurse into it
-        auto comp = dimension_compare(search, *(data.get()), dim);
+        const auto comp = dimension_compare(search, *(data.get()), dim);
 
         if (comp == NEGATIVE) {
-            if (childNegative)
+            if (childNegative) {
                 move_append(childNegative->k_nearest(search, n), res);
+                sort_and_limit(res, search, n);
+            }
         } else if (childPositive) {
             move_append(childPositive->k_nearest(search, n), res);
+            sort_and_limit(res, search, n);
         }
 
-        // only keep the required number of candidates and sort them by distance
-        sort_and_limit(res, search, n);
-
-        // check whether other side might have candidates aswell
-        const double distanceBest   = std::sqrt(square_dist(search, res.back()));
+        // check whether other side might have candidates as well
+        const double distanceBest   = res.size() > 0
+                                    ? std::sqrt(square_dist(search, res.back()))
+                                    : 0;
         const double borderNegative = search[dim] - distanceBest;
         const double borderPositive = search[dim] + distanceBest;
 
@@ -227,14 +222,22 @@ public:
         // and recurse into the "wrong" direction, to check for possibly additional
         // candidates
         if (comp == NEGATIVE && childPositive) {
-            if (res.size() < n || borderPositive >= (*data.get())[dim])
+            if (res.size() < n || borderPositive >= (*data.get())[dim]) {
                 move_append(childPositive->k_nearest(search, n), res);
+                sort_and_limit(res, search, n);
+            }
         } else if (comp == POSITIVE && childNegative) {
-            if (res.size() < n || borderNegative <= (*data.get())[dim])
+            if (res.size() < n || borderNegative <= (*data.get())[dim]) {
                 move_append(childNegative->k_nearest(search, n), res);
+                sort_and_limit(res, search, n);
+            }
         }
 
-        sort_and_limit(res, search, n);
+        if (res.size() < n || square_dist(search, *(data.get())) < square_dist(search, res.back())) {
+            res.push_back(*(data.get())); // add current node if there is still room
+            sort_and_limit(res, search, n);
+        }
+
         return res;
     }
 
@@ -378,8 +381,8 @@ private:
     {
         if (lhs[dim] <= rhs[dim])
             return NEGATIVE;
-        else
-            return POSITIVE;
+
+        return POSITIVE;
     }
 
     static inline void sort_and_limit(std::vector<P>& target, P const& search,
