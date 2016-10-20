@@ -32,6 +32,8 @@ private:
 
     const size_t dim;
 
+//------------------------------------------------------------------------------
+
 public:
     LazyKdTree(std::vector<P>&& in, int dimension = 0)
         : inputData(new std::vector<P>(std::move(in)))
@@ -61,8 +63,16 @@ public:
     LazyKdTree(LazyKdTree const&) = delete;
     LazyKdTree(LazyKdTree&&) = delete;
 
+//------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+
 private:
-    bool is_evaluated() const ///@todo rename to build or similar?
+    inline bool is_leaf() const
+    {
+        return !childNegative && !childPositive;
+    }
+
+    inline bool is_evaluated() const ///@todo rename to build or similar?
     {
         return inputData == nullptr;
     }
@@ -108,7 +118,11 @@ private:
         }
     }
 
-public: ///@todo let evaluate recursive be public?
+//------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+
+public:
+
     void evaluate_recursive() ///@todo ly
     {
         evaluate();
@@ -118,9 +132,8 @@ public: ///@todo let evaluate recursive be public?
             childPositive->evaluate_recursive();
     }
 
-    //------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 
-public:
     P nearest(P const& search)
     {
         evaluate(); ///@todo rename, since this only evaluates if not yet
@@ -174,6 +187,8 @@ public:
         return best;
     }
 
+//------------------------------------------------------------------------------
+
     std::vector<P> k_nearest(P const& search, size_t n)
     {
         evaluate(); ///@todo rename, since this only evaluates if not yet
@@ -224,6 +239,8 @@ public:
         return res;
     }
 
+//------------------------------------------------------------------------------
+
     std::vector<P> in_hypersphere(P const& search, double radius)
     {
         evaluate(); ///@todo rename, since this only evaluates if not yet
@@ -264,6 +281,8 @@ public:
 
         return res;
     }
+
+//------------------------------------------------------------------------------
 
     std::vector<P> in_box(P const& search, P const& sizes)
     {
@@ -313,6 +332,8 @@ public:
         return res;
     }
 
+//------------------------------------------------------------------------------
+
     size_t size() const
     {
         if (!is_evaluated())
@@ -326,12 +347,10 @@ public:
         return result;
     }
 
-private: ///@todo many public/ private switches, cleanup!
-    inline bool is_leaf() const { return !childNegative && !childPositive; }
+private:
 
-    //------------------------------------------------------------------------------
-
-    ///@todo many of these can be moved to helper later on
+//------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 
     static inline double square_dist(P const& p1, P const& p2)
     {
@@ -420,27 +439,27 @@ public:
         lkd.evaluate_recursive();
     }
 
-    P nearest(P const& search) const
+    inline P nearest(P const& search) const
     {
         return lkd.nearest(search);
     }
 
-    std::vector<P> k_nearest(P const& search, size_t n) const
+    inline std::vector<P> k_nearest(P const& search, size_t n) const
     {
         return lkd.k_nearest(search, n);
     }
 
-    std::vector<P> in_hypersphere(P const& search, double radius) const
+    inline std::vector<P> in_hypersphere(P const& search, double radius) const
     {
         return lkd.in_hypersphere(search, radius);
     }
 
-    std::vector<P> in_box(P const& search, P const& sizes) const
+    inline std::vector<P> in_box(P const& search, P const& sizes) const
     {
         return lkd.in_box(search, sizes);
     }
 
-    size_t size() const
+    inline size_t size() const
     {
         return lkd.size();
     }
