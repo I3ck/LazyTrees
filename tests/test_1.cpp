@@ -64,7 +64,7 @@ TEST_CASE("LazyKdTree - Point2D") {
         LazyKdTree<Point2D> tree(std::move(pts));
 
         REQUIRE(tree.size() == inputSize);
-        tree.evaluate_recursive();
+        tree.ensure_evaluated_fully();
         REQUIRE(tree.size() == inputSize);
     }
 
@@ -165,7 +165,7 @@ TEST_CASE("LazyKdTree - Point2D") {
         std::chrono::duration<double, std::milli> tNearest2 = std::chrono::high_resolution_clock::now() - tNearest2Start;
 
         auto tEvaluateStart = std::chrono::high_resolution_clock::now();
-        tree.evaluate_recursive();
+        tree.ensure_evaluated_fully();
         std::chrono::duration<double, std::milli> tEvaluate = std::chrono::high_resolution_clock::now() - tEvaluateStart;
 
 

@@ -77,7 +77,7 @@ private:
         return inputData == nullptr;
     }
 
-    void evaluate()
+    void ensure_evaluated()
     {
         if (is_evaluated())
             return;
@@ -123,20 +123,20 @@ private:
 
 public:
 
-    void evaluate_recursive() ///@todo ly
+    void ensure_evaluated_fully()
     {
-        evaluate();
+        ensure_evaluated();
         if (childNegative)
-            childNegative->evaluate_recursive();
+            childNegative->ensure_evaluated_fully();
         if (childPositive)
-            childPositive->evaluate_recursive();
+            childPositive->ensure_evaluated_fully();
     }
 
 //------------------------------------------------------------------------------
 
     P nearest(P const& search)
     {
-        evaluate(); ///@todo rename, since this only evaluates if not yet
+        ensure_evaluated();
 
         if (is_leaf())
             return *data.get(); // reached the end, return current value
@@ -191,7 +191,7 @@ public:
 
     std::vector<P> k_nearest(P const& search, size_t n)
     {
-        evaluate(); ///@todo rename, since this only evaluates if not yet
+        ensure_evaluated();
 
         if (n < 1)
             return std::vector<P>(); // no real search if n < 1
@@ -243,7 +243,7 @@ public:
 
     std::vector<P> in_hypersphere(P const& search, double radius)
     {
-        evaluate(); ///@todo rename, since this only evaluates if not yet
+        ensure_evaluated();
 
         if (radius <= 0.0)
             return std::vector<P>(); // no real search if radius <= 0
@@ -286,7 +286,7 @@ public:
 
     std::vector<P> in_box(P const& search, P const& sizes)
     {
-        evaluate(); ///@todo rename, since this only evaluates if not yet
+        ensure_evaluated();
 
         for (size_t i = 0; i < P::dimensions(); ++i) {
             if (sizes[i] <= 0.0)
@@ -423,20 +423,20 @@ public:
     StrictKdTree(std::vector<P>&& in)
         : lkd(std::move(in), 0)
     {
-        lkd.evaluate_recursive();
+        lkd.ensure_evaluated_fully();
     }
 
     StrictKdTree(std::vector<P> const& in)
         : lkd(in, 0)
     {
-        lkd.evaluate_recursive();
+        lkd.ensure_evaluated_fully();
     }
 
 
     StrictKdTree(LazyKdTree<P>&& in)
         : lkd(std::move(in))
     {
-        lkd.evaluate_recursive();
+        lkd.ensure_evaluated_fully();
     }
 
     inline P nearest(P const& search) const
