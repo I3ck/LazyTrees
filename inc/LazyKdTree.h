@@ -153,7 +153,7 @@ public:
             return *data.get();
 
         double sqrDistanceBest = square_dist(search, best);
-        double sqrDistanceThis = square_dist(search, *data.get());
+        const double sqrDistanceThis = square_dist(search, *data.get());
 
         if (sqrDistanceThis < sqrDistanceBest) {
             sqrDistanceBest = sqrDistanceThis;
@@ -163,22 +163,21 @@ public:
         }
 
         // check whether other side might have candidates as well
-        double borderNegative = search[dim] - sqrt(sqrDistanceBest);
-        double borderPositive = search[dim] + sqrt(sqrDistanceBest);
-        P otherBest;
+        const double borderNegative = search[dim] - sqrt(sqrDistanceBest);
+        const double borderPositive = search[dim] + sqrt(sqrDistanceBest);
 
         // check whether distances to other side are smaller than currently best
         // and recurse into the "wrong" direction, to check for possibly additional
         // candidates
         if (comp == NEGATIVE && childPositive) {
             if (borderPositive >= (*data.get())[dim]) {
-                otherBest = childPositive->nearest(search);
+                const auto otherBest = childPositive->nearest(search);
                 if (square_dist(search, otherBest) < square_dist(search, best))
                     best = otherBest;
             }
         } else if (comp == POSITIVE && childNegative) {
             if (borderNegative <= (*data.get())[dim]) {
-                otherBest = childNegative->nearest(search);
+                const auto otherBest = childNegative->nearest(search);
                 if (square_dist(search, otherBest) < square_dist(search, best))
                     best = otherBest;
             }
@@ -220,8 +219,8 @@ public:
 
         // check whether other side might have candidates aswell
         double distanceBest = square_dist(search, res.back());
-        double borderNegative = search[dim] - distanceBest;
-        double borderPositive = search[dim] + distanceBest;
+        const double borderNegative = search[dim] - distanceBest;
+        const double borderPositive = search[dim] + distanceBest;
 
         // check whether distances to other side are smaller than currently worst
         // candidate
@@ -265,8 +264,8 @@ public:
             move_append(childPositive->in_hypersphere(search, radius), res);
         }
 
-        double borderNegative = search[dim] - radius;
-        double borderPositive = search[dim] + radius;
+        const double borderNegative = search[dim] - radius;
+        const double borderPositive = search[dim] + radius;
 
         // check whether distances to other side are smaller than radius
         // and recurse into the "wrong" direction, to check for possibly additional
@@ -315,8 +314,8 @@ public:
             move_append(childPositive->in_box(search, sizes), res);
         }
 
-        double borderNegative = search[dim] - 0.5 * sizes[dim];
-        double borderPositive = search[dim] + 0.5 * sizes[dim];
+        const double borderNegative = search[dim] - 0.5 * sizes[dim];
+        const double borderPositive = search[dim] + 0.5 * sizes[dim];
 
         // check whether distances to other side are smaller than radius
         // and recurse into the "wrong" direction, to check for possibly additional
@@ -354,7 +353,7 @@ private:
 
     static inline double square_dist(P const& p1, P const& p2)
     {
-        double sqrDist = 0;
+        double sqrDist(0);
         auto nDims = P::dimensions();
 
         for (size_t i = 0; i < nDims; ++i)
