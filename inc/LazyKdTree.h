@@ -59,9 +59,10 @@ public:
                 "LazyKdTree can't be constructed from empty inputs");
     }
 
-    ///@todo enable some of these depending on what's required
+    LazyKdTree(LazyKdTree&&) = default;
+
+    ///@todo maybe write impl in the future (also implement for strict version then)
     LazyKdTree(LazyKdTree const&) = delete;
-    LazyKdTree(LazyKdTree&&) = delete;
 
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------

@@ -48,7 +48,7 @@ public:
 };
 
 
-TEST_CASE("LazyKdTree - Point2D") {
+TEST_CASE("KdTree - Point2D") {
     SECTION("Creation and size") {
         auto pts = std::vector<Point2D>{
            Point2D(0.0, 1.0),
@@ -66,6 +66,9 @@ TEST_CASE("LazyKdTree - Point2D") {
         REQUIRE(tree.size() == inputSize);
         tree.ensure_evaluated_fully();
         REQUIRE(tree.size() == inputSize);
+
+        StrictKdTree<Point2D> strictTree(std::move(tree));
+        REQUIRE(strictTree.size() == inputSize);
     }
 
     SECTION("Nearest") {
@@ -85,6 +88,13 @@ TEST_CASE("LazyKdTree - Point2D") {
         REQUIRE(tree.nearest(Point2D(0.5, 2.1)) 		== Point2D(0.0, 2.0));
         REQUIRE(tree.nearest(Point2D(14.0, 7.0)) 		== Point2D(15.0, 6.0));
         REQUIRE(tree.nearest(Point2D(0.0, 300.0)) 		== Point2D(0.0, 7.0));
+
+        StrictKdTree<Point2D> strictTree(std::move(tree));
+        REQUIRE(strictTree.nearest(Point2D(0.3, 0.7)) 		== Point2D(0.0, 1.0));
+        REQUIRE(strictTree.nearest(Point2D(-100.0, -100.0)) == Point2D(0.0, 1.0));
+        REQUIRE(strictTree.nearest(Point2D(0.5, 2.1)) 		== Point2D(0.0, 2.0));
+        REQUIRE(strictTree.nearest(Point2D(14.0, 7.0)) 		== Point2D(15.0, 6.0));
+        REQUIRE(strictTree.nearest(Point2D(0.0, 300.0)) 	== Point2D(0.0, 7.0));
     }
 
     SECTION("k_nearest") {
@@ -105,6 +115,13 @@ TEST_CASE("LazyKdTree - Point2D") {
         REQUIRE(result[0] == Point2D(0.0, 1.0));
         REQUIRE(result[1] == Point2D(0.0, 2.0));
         REQUIRE(result[2] == Point2D(0.0, 3.0));
+
+        StrictKdTree<Point2D> strictTree(std::move(tree));
+        result = strictTree.k_nearest(Point2D(0.0, 0.0), 3);
+        REQUIRE(result.size() == 3);
+        REQUIRE(result[0] == Point2D(0.0, 1.0));
+        REQUIRE(result[1] == Point2D(0.0, 2.0));
+        REQUIRE(result[2] == Point2D(0.0, 3.0));
     }
 
     SECTION("in_box") {
@@ -121,6 +138,10 @@ TEST_CASE("LazyKdTree - Point2D") {
 
         auto result = tree.in_box(Point2D(0.0, 2.0), Point2D(2.1, 2.1));
         REQUIRE(result.size() == 3);
+
+        StrictKdTree<Point2D> strictTree(std::move(tree));
+        result = strictTree.in_box(Point2D(0.0, 2.0), Point2D(2.1, 2.1));
+        REQUIRE(result.size() == 3);
     }
 
     SECTION("in_circle") {
@@ -136,6 +157,10 @@ TEST_CASE("LazyKdTree - Point2D") {
         LazyKdTree<Point2D> tree(std::move(pts));
 
         auto result = tree.in_hypersphere(Point2D(0.0, 2.0), 1.1);
+        REQUIRE(result.size() == 3);
+
+        StrictKdTree<Point2D> strictTree(std::move(tree));
+        result = strictTree.in_hypersphere(Point2D(0.0, 2.0), 1.1);
         REQUIRE(result.size() == 3);
     }
 
