@@ -45,6 +45,18 @@ public:
                 "LazyKdTree can't be constructed from empty inputs");
     }
 
+    LazyKdTree(std::vector<P> const& in, int dimension = 0)
+        : inputData(new std::vector<P>(in))
+        , childNegative(nullptr)
+        , childPositive(nullptr)
+        , data(nullptr)
+        , dim(dimension % P::dimensions())
+    {
+        if (inputData->size() == 0)
+            throw std::logic_error(
+                "LazyKdTree can't be constructed from empty inputs");
+    }
+
     ///@todo enable some of these depending on what's required
     LazyKdTree(LazyKdTree const&) = delete;
     LazyKdTree(LazyKdTree&&) = delete;
@@ -382,6 +394,7 @@ private: ///@todo many public/ private switches, cleanup!
     }
 };
 
+///@todo utest and maybe own file (or rename this file to KdTree)
 template <typename P>
 class StrictKdTree {
 private:
@@ -393,6 +406,13 @@ public:
     {
         lkd.evaluate_recursive();
     }
+
+    StrictKdTree(std::vector<P> const& in)
+        : lkd(in, 0)
+    {
+        lkd.evaluate_recursive();
+    }
+
 
     StrictKdTree(LazyKdTree<P>&& in)
         : lkd(std::move(in))
