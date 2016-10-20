@@ -73,7 +73,7 @@ private:
         return !childNegative && !childPositive;
     }
 
-    inline bool is_evaluated() const ///@todo rename to build or similar?
+    inline bool is_evaluated() const
     {
         return inputData == nullptr;
     }
@@ -82,8 +82,6 @@ private:
     {
         if (is_evaluated())
             return;
-        // consume inputData
-        // assign values to children etc.
 
         if (inputData->size() == 1) {
             data = std::unique_ptr<P>(new P(std::move((*inputData.get())[0])));
@@ -91,7 +89,7 @@ private:
         }
 
         else if (inputData->size() > 1) {
-            size_t median = inputData->size() / 2;
+            const size_t median = inputData->size() / 2;
             std::vector<P> inputNegative, inputPositive;
 
             inputNegative.reserve(median - 1);
@@ -164,8 +162,9 @@ public:
         }
 
         // check whether other side might have candidates as well
-        const double borderNegative = search[dim] - sqrt(sqrDistanceBest);
-        const double borderPositive = search[dim] + sqrt(sqrDistanceBest);
+        const double distanceBest   = std::sqrt(sqrDistanceBest);
+        const double borderNegative = search[dim] - distanceBest;
+        const double borderPositive = search[dim] + distanceBest;
 
         // check whether distances to other side are smaller than currently best
         // and recurse into the "wrong" direction, to check for possibly additional
@@ -219,7 +218,7 @@ public:
         sort_and_limit(res, search, n);
 
         // check whether other side might have candidates aswell
-        double distanceBest = square_dist(search, res.back());
+        const double distanceBest   = std::sqrt(square_dist(search, res.back()));
         const double borderNegative = search[dim] - distanceBest;
         const double borderPositive = search[dim] + distanceBest;
 
@@ -355,7 +354,7 @@ private:
     static inline double square_dist(P const& p1, P const& p2)
     {
         double sqrDist(0);
-        auto nDims = P::dimensions();
+        const auto nDims = P::dimensions();
 
         for (size_t i = 0; i < nDims; ++i)
             sqrDist += pow(p1[i] - p2[i], 2);
@@ -371,7 +370,7 @@ private:
     static inline void median_dimension_sort(std::vector<P>& pts, size_t dim)
     {
         std::nth_element(pts.begin(), pts.begin() + pts.size() / 2, pts.end(),
-            [&pts, dim](P lhs, P rhs) { return lhs[dim] < rhs[dim]; });
+            [dim](P const& lhs, P const& rhs) { return lhs[dim] < rhs[dim]; });
     }
 
     static inline Compare dimension_compare(P const& lhs, P const& rhs,
@@ -413,7 +412,7 @@ private:
     }
 };
 
-///@todo utest and maybe own file (or rename this file to KdTree)
+///@todo maybe own file (or rename this file to KdTree)
 template <typename P>
 class StrictKdTree {
 private:
