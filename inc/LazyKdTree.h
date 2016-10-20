@@ -140,7 +140,7 @@ public:
         if (is_leaf())
             return *data.get(); // reached the end, return current value
 
-        auto comp = dimension_compare(search, *data.get(), dim);
+        const auto comp = dimension_compare(search, *data.get(), dim);
 
         P best; // nearest neighbor of search
 
@@ -247,19 +247,16 @@ public:
     {
         ensure_evaluated();
 
-        if (radius <= 0.0)
-            return std::vector<P>(); // no real search if radius <= 0
+        if (radius <= 0.0) return std::vector<P>(); // no real search if radius <= 0
 
         std::vector<P> res; // all points within the sphere
         if (sqrt(square_dist(search, *(data.get()))) <= radius)
-            res.push_back(
-                *(data.get())); // add current node if it is within the search radius
+            res.push_back(*(data.get())); // add current node if it is within the search radius
 
-        if (is_leaf())
-            return res; // no children, return result
+        if (is_leaf()) return res; // no children, return result
 
         // decide which side to check and recurse into it
-        auto comp = dimension_compare(search, *(data.get()), dim);
+        const auto comp = dimension_compare(search, *(data.get()), dim);
         if (comp == NEGATIVE) {
             if (childNegative)
                 move_append(childNegative->in_hypersphere(search, radius), res);
@@ -271,7 +268,7 @@ public:
         const double borderPositive = search[dim] + radius;
 
         // check whether distances to other side are smaller than radius
-        // and recurse into the "wrong" direction, to check for possibly additional
+        // and recurse into the "wrong" direction, to check for possibly aditional
         // candidates
         if (comp == NEGATIVE && childPositive) {
             if (borderPositive >= (*data.get())[dim])
@@ -292,8 +289,7 @@ public:
 
         for (size_t i = 0; i < P::dimensions(); ++i) {
             if (sizes[i] <= 0.0)
-                return std::vector<P>(); // no real search if one dimension size is <=
-            // 0
+                return std::vector<P>(); // no real search if one dimension size is <= 0
         }
 
         std::vector<P> res; // all points within the box
@@ -302,14 +298,12 @@ public:
         for (size_t i = 0; i < P::dimensions() && inBox; ++i)
             inBox = dimension_dist(search, *(data.get()), i) <= 0.5 * sizes[i];
 
-        if (inBox)
-            res.push_back(*(data.get()));
+        if (inBox) res.push_back(*(data.get()));
 
-        if (is_leaf())
-            return res; // no children, return result
+        if (is_leaf()) return res; // no children, return result
 
         // decide which side to check and recurse into it
-        auto comp = dimension_compare(search, *(data.get()), dim);
+        const auto comp = dimension_compare(search, *(data.get()), dim);
         if (comp == NEGATIVE) {
             if (childNegative)
                 move_append(childNegative->in_box(search, sizes), res);
@@ -403,7 +397,10 @@ private:
             to = std::move(from);
         else {
             to.reserve(to.size() + from.size());
-            std::move(std::begin(from), std::end(from), std::back_inserter(to));
+            to.insert(
+                std::end(to),
+                std::make_move_iterator(std::begin(from)),
+                std::make_move_iterator(std::end(from)));
         }
     }
 
