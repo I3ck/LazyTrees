@@ -7,7 +7,7 @@
 #include <vector>
 #include <chrono> //tmp!
 
-#include "LazyKdTree.h"
+#include "KdTree.h"
 
 using namespace std;
 using namespace lazyTrees;

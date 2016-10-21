@@ -11,8 +11,8 @@
     OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-#ifndef LAZYKDTREE_H
-#define LAZYKDTREE_H
+#ifndef KDTREE_H
+#define KDTREE_H
 
 #include <memory>
 #include <vector>
@@ -25,8 +25,6 @@ namespace lazyTrees {
 // P must implement static size_t dimensions() returning number of dimensions
 // P also must be const random-accessable for up to [dimensions() - 1] returning
 // the X / Y / Z / ... coordinate of the point
-
-///@todo possibility to transform to a strict tree, to make reading access const
 template <typename P>
 class LazyKdTree {
 private:
@@ -53,9 +51,7 @@ public:
         , data(nullptr)
         , dim(dimension % P::dimensions())
     {
-        if (inputData->size() == 0)
-            throw std::logic_error(
-                "LazyKdTree can't be constructed from empty inputs");
+      throw_if_input_empty();
     }
 
     LazyKdTree(std::vector<P> const& in, int dimension = 0)
@@ -65,9 +61,7 @@ public:
         , data(nullptr)
         , dim(dimension % P::dimensions())
     {
-        if (inputData->size() == 0)
-            throw std::logic_error(
-                "LazyKdTree can't be constructed from empty inputs");
+      throw_if_input_empty();
     }
 
     LazyKdTree(LazyKdTree&&) = default;
@@ -79,6 +73,12 @@ public:
 //------------------------------------------------------------------------------
 
 private:
+    inline void throw_if_input_empty() const
+    {
+      if (!inputData || inputData->size() == 0)
+        throw std::logic_error("LazyKdTree can't be constructed from empty inputs");
+    }
+
     inline bool is_leaf() const
     {
         return !childNegative && !childPositive;
@@ -478,4 +478,4 @@ public:
 
 }
 
-#endif // LAZYKDTREE_H
+#endif // KDTREE_H
